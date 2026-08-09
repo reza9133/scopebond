@@ -1,0 +1,6 @@
+{
+  "milestone": "Milestone 1 — Public status-page widget",
+  "submitted_by": "client",
+  "objection": "The brief asked for two supported embed methods and the README only fully documents one — the npm package isn't actually published, so 'npm install @example-org/status-widget' fails for anyone trying it right now. Everything else in the demo looks correct and matches what we asked for.",
+  "requested_outcome": "partial_refund_pending_npm_publish"
+}

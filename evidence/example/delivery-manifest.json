@@ -1,0 +1,13 @@
+{
+  "milestone": "Milestone 1 — Public status-page widget",
+  "repository": "https://github.com/example-org/status-widget/tree/9f2a1c4",
+  "deployed_demo": "https://status-widget-demo.example.dev",
+  "summary": "Implements the widget as a single-file web component (status-widget.js) plus an npm package (@example-org/status-widget). Polls the configured endpoint every 60s using fetch + AbortController and re-renders in place.",
+  "self_reported_checklist": [
+    { "criterion_id": "C1", "status": "met", "note": "Reads {status: 'operational'|'degraded'|'outage'} from the configured endpoint." },
+    { "criterion_id": "C2", "status": "met", "note": "Tested at 320px, 768px, 1024px, 1440px; uses container queries." },
+    { "criterion_id": "C3", "status": "met", "note": "setInterval(60000) with visibility-change pause to avoid background polling." },
+    { "criterion_id": "C4", "status": "partial", "note": "README documents the script-tag embed; npm package publish is staged but not yet published, so the npm embed instructions describe a local install only." },
+    { "criterion_id": "C5", "status": "met", "note": "No analytics or font CDNs; system font stack only." }
+  ]
+}
