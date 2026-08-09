@@ -1,25 +1,16 @@
 // @ts-nocheck
 import { createClient } from 'genlayer-js';
+import { testnetBradbury } from 'genlayer-js/chains';
 import { BRADBURY_NETWORK_PARAMS } from './config';
 
-const customChain = {
-  id: 4221,
-  name: BRADBURY_NETWORK_PARAMS.chainName,
-  nativeCurrency: BRADBURY_NETWORK_PARAMS.nativeCurrency,
-  rpcUrls: {
-    default: { http: ['https://rpc-bradbury.genlayer.com'] },
-  },
-  blockExplorers: {
-    default: { name: 'Explorer', url: 'https://explorer-bradbury.genlayer.com' },
-  },
-};
-
-export const readClient = createClient({ chain: customChain });
+export const readClient = createClient({ 
+  chain: testnetBradbury 
+});
 
 export function createWriteClient(account: string) {
   const eth = (window as any).ethereum;
   return createClient({
-    chain: customChain,
+    chain: testnetBradbury,
     account: account as any,
     provider: eth,
   });
@@ -37,7 +28,7 @@ export async function ensureBradburyNetwork() {
       params: [{ chainId: chainIdHex }],
     });
   } catch (switchError: any) {
-    if (switchError.code === 4902 || String(switchError?.message).includes('4902')) {
+    if (switchError.code === 4902 || String(switchError?.message).includes('4902') || String(switchError?.message).includes('not added')) {
       await eth.request({
         method: 'wallet_addEthereumChain',
         params: [
