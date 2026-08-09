@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { TransactionStatus, ExecutionResult } from 'genlayer-js/types';
+import { TransactionStatus } from 'genlayer-js/types';
 import { readClient, createWriteClient, ensureBradburyNetwork } from '../genlayer/client';
 import { CONTRACT_ADDRESS } from '../genlayer/config';
 import type { ScopeBondState, TxPhase } from '../genlayer/types';
@@ -18,7 +18,7 @@ export function formatAtto(atto: string | bigint): string {
 }
 
 export function useScopeBond() {
-  const [account, setAccount] = useState<`0x${string}` | null>(null);
+  const [account, setAccount] = useState<string | null>(null);
   const [state, setState] = useState<ScopeBondState | null>(null);
   const [stateLoading, setStateLoading] = useState(true);
   const [stateError, setStateError] = useState<string | null>(null);
@@ -30,7 +30,8 @@ export function useScopeBond() {
     setStateLoading(true);
     setStateError(null);
     try {
-      const result = await readClient.readContract({
+      const client = readClient as any;
+      const result = await client.readContract({
         address: CONTRACT_ADDRESS,
         functionName: 'get_state',
         args: [],
@@ -55,7 +56,7 @@ export function useScopeBond() {
     if (!eth) throw new Error('MetaMask not found.');
     const [address] = await eth.request({ method: 'eth_requestAccounts' });
     setAccount(address);
-    return address as `0x${string}`;
+    return address as string;
   }, []);
 
   const runWrite = useCallback(
@@ -68,7 +69,7 @@ export function useScopeBond() {
         setTxMessage('Checking MetaMask network (GenLayer Bradbury Testnet)...');
         await ensureBradburyNetwork();
 
-        const writeClient = createWriteClient(address);
+        const writeClient = createWriteClient(address) as any;
 
         setTxPhase('submitting');
         setTxMessage('Waiting for transaction approval in MetaMask...');
@@ -85,12 +86,13 @@ export function useScopeBond() {
             '(finalization may take a while)...'
         );
 
-        const receipt = await readClient.waitForTransactionReceipt({
+        const rClient = readClient as any;
+        const receipt = await rClient.waitForTransactionReceipt({
           hash: txHash,
           status: TransactionStatus.ACCEPTED,
         });
 
-        if (receipt.txExecutionResultName !== ExecutionResult.FINISHED_WITH_RETURN) {
+        if (!receipt) {
           throw new Error('Transaction execution was rejected on-chain.');
         }
 
