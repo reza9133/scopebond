@@ -64,10 +64,11 @@ export function useScopeBond() {
       setTxMessage('Connecting to wallet...');
       try {
         const address = account ?? (await connectWallet());
-        const writeClient = createWriteClient(address);
 
         setTxMessage('Checking MetaMask network (GenLayer Bradbury Testnet)...');
-        await ensureBradburyNetwork(writeClient);
+        await ensureBradburyNetwork();
+
+        const writeClient = createWriteClient(address);
 
         setTxPhase('submitting');
         setTxMessage('Waiting for transaction approval in MetaMask...');
