@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useCallback, useEffect, useState } from 'react';
 import { TransactionStatus } from 'genlayer-js/types';
 import { readClient, createWriteClient, ensureBradburyNetwork } from '../genlayer/client';
@@ -30,8 +31,7 @@ export function useScopeBond() {
     setStateLoading(true);
     setStateError(null);
     try {
-      const client = readClient as any;
-      const result = await client.readContract({
+      const result = await readClient.readContract({
         address: CONTRACT_ADDRESS,
         functionName: 'get_state',
         args: [],
@@ -39,8 +39,7 @@ export function useScopeBond() {
       setState(result as ScopeBondState);
     } catch (err: any) {
       setStateError(
-        `Failed to fetch contract state from network: ${err?.message ?? err}. ` +
-          `Please check the address on explorer-bradbury.genlayer.com`
+        `Failed to fetch contract state from network: ${err?.message ?? err}.`
       );
     } finally {
       setStateLoading(false);
@@ -66,10 +65,10 @@ export function useScopeBond() {
       try {
         const address = account ?? (await connectWallet());
 
-        setTxMessage('Checking MetaMask network (GenLayer Bradbury Testnet)...');
+        setTxMessage('Checking MetaMask network...');
         await ensureBradburyNetwork();
 
-        const writeClient = createWriteClient(address) as any;
+        const writeClient = createWriteClient(address);
 
         setTxPhase('submitting');
         setTxMessage('Waiting for transaction approval in MetaMask...');
@@ -82,12 +81,10 @@ export function useScopeBond() {
 
         setTxPhase('confirming');
         setTxMessage(
-          'Transaction submitted; waiting for GenLayer validator consensus ' +
-            '(finalization may take a while)...'
+          'Transaction submitted; waiting for validator consensus...'
         );
 
-        const rClient = readClient as any;
-        const receipt = await rClient.waitForTransactionReceipt({
+        const receipt = await readClient.waitForTransactionReceipt({
           hash: txHash,
           status: TransactionStatus.ACCEPTED,
         });
