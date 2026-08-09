@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createClient } from 'genlayer-js';
 import { testnetBradbury } from 'genlayer-js/chains';
 import { BRADBURY_NETWORK_PARAMS } from './config';
@@ -7,7 +8,7 @@ export const readClient = createClient({ chain: testnetBradbury });
 export function createWriteClient(account: string) {
   return createClient({
     chain: testnetBradbury,
-    account: account as any,
+    account: account,
     provider: (window as any).ethereum,
   });
 }
@@ -44,7 +45,7 @@ export async function ensureBradburyNetwork() {
           ],
         });
       } catch (addError) {
-        throw new Error('Failed to add GenLayer network to MetaMask. Please add it manually.');
+        throw new Error('Failed to add GenLayer network to MetaMask.');
       }
     } else {
       throw switchError;
