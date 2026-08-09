@@ -1,17 +1,16 @@
 // @ts-nocheck
 import { createClient } from 'genlayer-js';
-import { custom } from 'viem';
 import { BRADBURY_NETWORK_PARAMS } from './config';
 
 const customChain = {
-  id: BRADBURY_NETWORK_PARAMS.chainId,
+  id: 4221,
   name: BRADBURY_NETWORK_PARAMS.chainName,
   nativeCurrency: BRADBURY_NETWORK_PARAMS.nativeCurrency,
   rpcUrls: {
-    default: { http: BRADBURY_NETWORK_PARAMS.rpcUrls },
+    default: { http: ['https://rpc-bradbury.genlayer.com'] },
   },
   blockExplorers: {
-    default: { name: 'Explorer', url: BRADBURY_NETWORK_PARAMS.blockExplorerUrls[0] },
+    default: { name: 'Explorer', url: 'https://explorer-bradbury.genlayer.com' },
   },
 };
 
@@ -22,7 +21,7 @@ export function createWriteClient(account: string) {
   return createClient({
     chain: customChain,
     account: account as any,
-    transport: custom(eth),
+    provider: eth,
   });
 }
 
@@ -46,8 +45,8 @@ export async function ensureBradburyNetwork() {
             chainId: chainIdHex,
             chainName: BRADBURY_NETWORK_PARAMS.chainName,
             nativeCurrency: BRADBURY_NETWORK_PARAMS.nativeCurrency,
-            rpcUrls: BRADBURY_NETWORK_PARAMS.rpcUrls,
-            blockExplorerUrls: BRADBURY_NETWORK_PARAMS.blockExplorerUrls,
+            rpcUrls: ['https://rpc-bradbury.genlayer.com'],
+            blockExplorerUrls: ['https://explorer-bradbury.genlayer.com'],
           },
         ],
       });
