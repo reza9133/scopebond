@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ethers } from 'ethers';
 
-// لینک واقعی گیت‌هاب شما
 const GITHUB_REPO_URL = "https://github.com/reza9133/scopebond";
 
 export default function App() {
-  const [contractAddress, setContractAddress] = useState('0xScopeBondGenLayerEscrow7788');
+  const [contractAddress, setContractAddress] = useState('0xD0aFE1A900fe4FA7f7B8dF1Bab54E0004AD828D5');
   const [walletConnected, setWalletConnected] = useState(false);
   const [account, setAccount] = useState('');
   
@@ -19,9 +18,10 @@ export default function App() {
   const [feedbackUrl, setFeedbackUrl] = useState('');
 
   const connectWallet = async () => {
-    if (window.ethereum) {
+    const win = window as any;
+    if (win.ethereum) {
       try {
-        const provider = new ethers.BrowserProvider(window.ethereum);
+        const provider = new ethers.BrowserProvider(win.ethereum);
         const signer = await provider.getSigner();
         const address = await signer.getAddress();
         setAccount(address);
