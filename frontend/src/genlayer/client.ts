@@ -4,10 +4,10 @@ import { BRADBURY_NETWORK_PARAMS } from './config';
 
 export const readClient = createClient({ chain: testnetBradbury });
 
-export function createWriteClient(account: `0x${string}`) {
+export function createWriteClient(account: string) {
   return createClient({
     chain: testnetBradbury,
-    account,
+    account: account as any,
     provider: (window as any).ethereum,
   });
 }
