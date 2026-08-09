@@ -93,6 +93,10 @@ export function useScopeBond() {
           throw new Error('Transaction execution was rejected on-chain.');
         }
 
+        if (receipt.txExecutionResultName && receipt.txExecutionResultName !== 'FINISHED_WITH_RETURN') {
+          console.warn('Execution result name:', receipt.txExecutionResultName);
+        }
+
         setTxPhase('success');
         setTxMessage('Transaction accepted successfully.');
         await refetch();
