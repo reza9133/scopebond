@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { createClient } from 'genlayer-js';
+import { custom } from 'viem';
 import { BRADBURY_NETWORK_PARAMS } from './config';
 
 const customChain = {
@@ -17,10 +18,11 @@ const customChain = {
 export const readClient = createClient({ chain: customChain });
 
 export function createWriteClient(account: string) {
+  const eth = (window as any).ethereum;
   return createClient({
     chain: customChain,
-    account: account,
-    provider: (window as any).ethereum,
+    account: account as any,
+    transport: custom(eth),
   });
 }
 
@@ -36,28 +38,19 @@ export async function ensureBradburyNetwork() {
       params: [{ chainId: chainIdHex }],
     });
   } catch (switchError: any) {
-    if (
-      switchError.code === 4902 || 
-      switchError?.data?.originalError?.code === 4902 ||
-      String(switchError?.message).includes('4902') ||
-      String(switchError?.message).includes('not added')
-    ) {
-      try {
-        await eth.request({
-          method: 'wallet_addEthereumChain',
-          params: [
-            {
-              chainId: chainIdHex,
-              chainName: BRADBURY_NETWORK_PARAMS.chainName,
-              nativeCurrency: BRADBURY_NETWORK_PARAMS.nativeCurrency,
-              rpcUrls: BRADBURY_NETWORK_PARAMS.rpcUrls,
-              blockExplorerUrls: BRADBURY_NETWORK_PARAMS.blockExplorerUrls,
-            },
-          ],
-        });
-      } catch (addError) {
-        throw new Error('Failed to add GenLayer network to MetaMask.');
-      }
+    if (switchError.code === 4902 || String(switchError?.message).includes('4902')) {
+      await eth.request({
+        method: 'wallet_addEthereumChain',
+        params: [
+          {
+            chainId: chainIdHex,
+            chainName: BRADBURY_NETWORK_PARAMS.chainName,
+            nativeCurrency: BRADBURY_NETWORK_PARAMS.nativeCurrency,
+            rpcUrls: BRADBURY_NETWORK_PARAMS.rpcUrls,
+            blockExplorerUrls: BRADBURY_NETWORK_PARAMS.blockExplorerUrls,
+          },
+        ],
+      });
     } else {
       throw switchError;
     }
