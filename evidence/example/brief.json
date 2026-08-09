@@ -1,26 +1,11 @@
 {
   "milestone": "Milestone 1 — Public status-page widget",
   "criteria": [
-    {
-      "id": "C1",
-      "text": "Embeddable widget renders current status (operational / degraded / outage) from a single JSON endpoint the client supplies."
-    },
-    {
-      "id": "C2",
-      "text": "Widget is responsive and legible from 320px to 1440px viewport width without horizontal scroll."
-    },
-    {
-      "id": "C3",
-      "text": "Widget polls the status endpoint every 60 seconds and updates without a full page reload."
-    },
-    {
-      "id": "C4",
-      "text": "Widget ships with a README documenting the two supported embed methods (script tag and npm package) and the expected JSON schema."
-    },
-    {
-      "id": "C5",
-      "text": "No external network calls other than the client-supplied status endpoint (no third-party analytics, fonts, or trackers)."
-    }
+    { "id": "C1", "text": "Embeddable widget renders current status (operational / degraded / outage) from a single JSON endpoint the client supplies." },
+    { "id": "C2", "text": "Widget is responsive and legible from 320px to 1440px viewport width without horizontal scroll." },
+    { "id": "C3", "text": "Widget polls the status endpoint every 60 seconds and updates without a full page reload." },
+    { "id": "C4", "text": "Widget ships with a README documenting the two supported embed methods (script tag and npm package) and the expected JSON schema." },
+    { "id": "C5", "text": "No external network calls other than the client-supplied status endpoint (no third-party analytics, fonts, or trackers)." }
   ],
   "acceptance_note": "All five criteria are material to acceptance. A delivery meeting four of five with a documented, low-severity gap on one criterion is PARTIALLY_MET; missing two or more, or missing any criterion in a way that blocks basic use, is NOT_MET."
 }
