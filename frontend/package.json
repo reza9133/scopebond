@@ -12,7 +12,7 @@
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "genlayer-js": "^0.1.0",
+    "genlayer-js": "latest",
     "ethers": "^6.13.0"
   },
   "devDependencies": {
