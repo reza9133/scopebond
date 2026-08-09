@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useCallback, useEffect, useState } from 'react';
-import { TransactionStatus } from 'genlayer-js/types';
+import { ExecutionResult, TransactionStatus } from 'genlayer-js/types';
 import { readClient, createWriteClient, ensureBradburyNetwork } from '../genlayer/client';
 import { CONTRACT_ADDRESS } from '../genlayer/config';
 import type { ScopeBondState, TxPhase } from '../genlayer/types';
@@ -93,8 +93,17 @@ export function useScopeBond() {
           throw new Error('Transaction execution was rejected on-chain.');
         }
 
-        if (receipt.txExecutionResultName && receipt.txExecutionResultName !== 'FINISHED_WITH_RETURN') {
-          console.warn('Execution result name:', receipt.txExecutionResultName);
+        // Optional but recommended: consensus can finalize a transaction
+        // while the contract call itself still failed (e.g. one of the many
+        // gl.vm.UserError checks in scope_bond.py — wrong caller, wrong
+        // state, etc). A truthy receipt alone doesn't mean the call
+        // succeeded, so check the execution result explicitly.
+        if (receipt.txExecutionResultName === ExecutionResult.FINISHED_WITH_ERROR) {
+          throw new Error(
+            'Transaction was accepted on-chain, but contract execution failed ' +
+            '(likely a UserError from scope_bond.py — check that the connected ' +
+            'account and current contract state allow this call).'
+          );
         }
 
         setTxPhase('success');
