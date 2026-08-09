@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useScopeBond, formatAtto } from './hooks/useScopeBond';
 import { CONTRACT_ADDRESS } from './genlayer/config';
 
