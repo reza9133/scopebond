@@ -4,6 +4,8 @@
 
 Testnet-grade intelligent contract. No real funds, no custody outside the chain, no claim of production readiness.
 
+**Live Demo:** (https://scopebond.pages.dev)
+
 * **Live Testnet Contract Address:** `0xD0aFE1A900fe4FA7f7B8dF1Bab54E0004AD828D5` (GenLayer Bradbury Testnet)
 
 ---
