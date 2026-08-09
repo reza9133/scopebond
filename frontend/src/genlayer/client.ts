@@ -1,13 +1,24 @@
 // @ts-nocheck
 import { createClient } from 'genlayer-js';
-import { testnetBradbury } from 'genlayer-js/chains';
 import { BRADBURY_NETWORK_PARAMS } from './config';
 
-export const readClient = createClient({ chain: testnetBradbury });
+const customChain = {
+  id: BRADBURY_NETWORK_PARAMS.chainId,
+  name: BRADBURY_NETWORK_PARAMS.chainName,
+  nativeCurrency: BRADBURY_NETWORK_PARAMS.nativeCurrency,
+  rpcUrls: {
+    default: { http: BRADBURY_NETWORK_PARAMS.rpcUrls },
+  },
+  blockExplorers: {
+    default: { name: 'Explorer', url: BRADBURY_NETWORK_PARAMS.blockExplorerUrls[0] },
+  },
+};
+
+export const readClient = createClient({ chain: customChain });
 
 export function createWriteClient(account: string) {
   return createClient({
-    chain: testnetBradbury,
+    chain: customChain,
     account: account,
     provider: (window as any).ethereum,
   });
