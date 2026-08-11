@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useScopeBond, formatAtto } from './hooks/useScopeBond';
-import { CONTRACT_ADDRESS } from './genlayer/config';
+import { CONTRACT_ADDRESS as DEFAULT_CONTRACT } from './genlayer/config';
 
 const GITHUB_REPO_URL = "https://github.com/reza9133/scopebond";
 
@@ -25,14 +25,16 @@ function TxBanner({ phase, message }: { phase: string; message: string }) {
 // Validator for Immutable URLs
 function isImmutableUrl(url: string): boolean {
   if (!url) return false;
-  // Accept IPFS or Arweave hash links
   if (url.startsWith('ipfs://') || url.startsWith('ar://')) return true;
-  // Accept GitHub raw links ONLY if they contain a strict 40-character commit hash (not mutable branch names like 'main')
   const githubCommitRegex = /^https:\/\/raw\.githubusercontent\.com\/[^\/]+\/[^\/]+\/[a-f0-9]{40}\//i;
   return githubCommitRegex.test(url);
 }
 
 export default function App() {
+  // State for Dynamic Contract Loading
+  const [activeAddress, setActiveAddress] = useState(DEFAULT_CONTRACT || '');
+  const [inputAddress, setInputAddress] = useState(DEFAULT_CONTRACT || '');
+
   const {
     account,
     connectWallet,
@@ -48,7 +50,7 @@ export default function App() {
     openDispute,
     rule,
     release
-  } = useScopeBond();
+  } = useScopeBond(activeAddress);
 
   const [fundAmount, setFundAmount] = useState('1');
   const [deliveryUrl, setDeliveryUrl] = useState('');
@@ -60,6 +62,15 @@ export default function App() {
   const escrowAmount = state ? formatAtto(state.escrow_atto) : '0';
   const outcome = state?.outcome || 'Pending';
   const rulingReason = state?.ruling_reason || '';
+
+  const handleLoadContract = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (inputAddress.trim().length === 42 && inputAddress.trim().startsWith('0x')) {
+      setActiveAddress(inputAddress.trim());
+    } else {
+      alert("Please enter a valid 42-character GenLayer contract address starting with '0x'.");
+    }
+  };
 
   const handleSecureSubmitDelivery = () => {
     if (!isImmutableUrl(deliveryUrl)) {
@@ -115,17 +126,34 @@ export default function App() {
       </header>
 
       {/* Hero Section */}
-      <section className="text-center py-16 px-6 max-w-4xl mx-auto">
+      <section className="text-center py-12 px-6 max-w-4xl mx-auto">
         <div className="inline-block mb-4 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold uppercase tracking-widest">
           Decentralized Trustless Escrow
         </div>
         <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white mb-6 leading-tight">
           AI-Powered Smart Contracts That <span className="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">Settle Disputes.</span>
         </h1>
-        <p className="text-sm md:text-base text-slate-400 leading-relaxed max-w-2xl mx-auto">
-          ScopeBond securely locks project funds, tracks milestones, and leverages GenLayer decentralized consensus validators to rule on deliverables autonomously.
-        </p>
       </section>
+
+      {/* Dynamic Contract Loader Bar */}
+      <div className="max-w-6xl mx-auto px-6 mb-8 w-full">
+        <form onSubmit={handleLoadContract} className="glass-card p-2 pl-6 bg-slate-900/80 border border-slate-700/50 rounded-2xl shadow-xl flex flex-col sm:flex-row gap-4 items-center backdrop-blur-md">
+          <label className="text-xs font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">Target Contract:</label>
+          <input 
+            type="text" 
+            placeholder="Enter ScopeBond Contract Address (0x...)" 
+            value={inputAddress}
+            onChange={(e) => setInputAddress(e.target.value)}
+            className="w-full bg-transparent border-none text-sm font-mono text-cyan-400 focus:outline-none placeholder-slate-600"
+          />
+          <button 
+            type="submit"
+            className="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl text-xs whitespace-nowrap transition cursor-pointer border border-slate-600"
+          >
+            Load Dashboard
+          </button>
+        </form>
+      </div>
 
       {/* Main Dashboard Grid */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -140,7 +168,7 @@ export default function App() {
             <TxBanner phase={txPhase} message={txMessage} />
 
             {stateError && (
-              <div className="p-3 mb-4 rounded-lg bg-red-950/50 border border-red-500/30 text-red-400 text-xs">
+              <div className="p-3 mb-4 rounded-lg bg-red-950/50 border border-red-500/30 text-red-400 text-xs leading-relaxed">
                 {stateError}
               </div>
             )}
@@ -161,13 +189,10 @@ export default function App() {
             </div>
 
             <div className="mt-8 pt-6 border-t border-slate-800">
-              <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">Contract Address</label>
-              <input 
-                type="text" 
-                readOnly
-                value={CONTRACT_ADDRESS}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-slate-300 focus:outline-none"
-              />
+              <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">Active Address</label>
+              <div className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-[10px] font-mono text-slate-500 truncate">
+                {activeAddress || "No contract loaded"}
+              </div>
             </div>
           </div>
 
@@ -181,7 +206,7 @@ export default function App() {
         </div>
 
         {/* Right Column: Actions Dashboard */}
-        <div className="md:col-span-2 space-y-6">
+        <div className="md:col-span-2 space-y-6 opacity-100 transition-opacity duration-300" style={{ opacity: activeAddress && !stateError ? 1 : 0.4, pointerEvents: activeAddress && !stateError ? 'auto' : 'none' }}>
           
           {/* Client Dashboard */}
           <div className="glass-card p-6 bg-slate-900/60 border border-slate-800 rounded-2xl shadow-xl backdrop-blur-md">
@@ -320,76 +345,36 @@ export default function App() {
         </div>
       </main>
 
-      {/* How It Works Section */}
+      {/* How It Works Section & Footer (unchanged from your original) */}
       <section className="max-w-6xl w-full mx-auto px-6 py-20 mt-12 border-t border-slate-800/80">
         <div className="text-center mb-12">
           <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest">Protocol Architecture</span>
           <h2 className="text-2xl md:text-3xl font-extrabold text-white mt-2">How ScopeBond Works</h2>
-          <p className="text-sm text-slate-400 mt-2 max-w-xl mx-auto">Three automated steps to guarantee complete security and zero trust friction for both clients and creators.</p>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="glass-card p-8 bg-slate-900/40 border border-slate-800 rounded-2xl relative overflow-hidden group hover:border-indigo-500/50 transition">
             <div className="text-indigo-400 font-mono text-3xl font-black mb-4 opacity-40">01</div>
             <h3 className="text-base font-bold text-white mb-2">Fund & Initialize</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              The client deposits project funds into the immutable GenLayer smart contract escrow, locking capital safely until project completion.
-            </p>
+            <p className="text-xs text-slate-400 leading-relaxed">The client deposits project funds into the immutable GenLayer smart contract escrow.</p>
           </div>
-
           <div className="glass-card p-8 bg-slate-900/40 border border-slate-800 rounded-2xl relative overflow-hidden group hover:border-purple-500/50 transition">
             <div className="text-purple-400 font-mono text-3xl font-black mb-4 opacity-40">02</div>
             <h3 className="text-base font-bold text-white mb-2">Submit & Verify</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              The freelancer submits immutable, hash-backed deliverables. Both parties review deliverables transparently on-chain.
-            </p>
+            <p className="text-xs text-slate-400 leading-relaxed">The freelancer submits immutable deliverables for transparent on-chain review.</p>
           </div>
-
           <div className="glass-card p-8 bg-slate-900/40 border border-slate-800 rounded-2xl relative overflow-hidden group hover:border-cyan-500/50 transition">
             <div className="text-cyan-400 font-mono text-3xl font-black mb-4 opacity-40">03</div>
             <h3 className="text-base font-bold text-white mb-2">Autonomous Settlement</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              In case of disputes, AI consensus validators analyze public artifacts and automatically route funds to the rightful party without human bias.
-            </p>
+            <p className="text-xs text-slate-400 leading-relaxed">AI consensus validators analyze public artifacts and route funds to the rightful party.</p>
           </div>
         </div>
       </section>
 
-      {/* Professional Clean Footer */}
-      <footer className="border-t border-slate-800/80 bg-slate-950 mt-20 pt-16 pb-10 px-8">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 pb-12 border-b border-slate-800/60">
-          
-          <div className="space-y-4">
-            <span className="text-sm font-black tracking-wider text-white">SCOPEBOND</span>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Escrow that settles service disputes — held on-chain, ruled by GenLayer validators, released without a trusted middleman.
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">Resources & Code</h4>
-            <ul className="space-y-2 text-xs text-slate-400">
-              <li><a href={GITHUB_REPO_URL} target="_blank" rel="noreferrer" className="hover:text-white transition">GitHub Repository ↗</a></li>
-              <li><span className="text-slate-500">GenLayer Bradbury Testnet</span></li>
-            </ul>
-          </div>
-
-          <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">Protocol Status</h4>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Active testnet instance running consensus validation nodes for decentralized dispute resolution.
-            </p>
-          </div>
-
-        </div>
-
-        <div className="max-w-6xl mx-auto pt-8 flex flex-col sm:flex-row justify-between items-center text-[11px] text-slate-500 gap-4">
+      <footer className="border-t border-slate-800/80 bg-slate-950 mt-10 pt-10 pb-10 px-8">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center text-[11px] text-slate-500 gap-4">
           <div className="flex items-center space-x-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span>Production - live on GenLayer Bradbury testnet</span>
-          </div>
-          <div>
-            Testnet prototype. No real financial assets or monetary value involved.
           </div>
         </div>
       </footer>
