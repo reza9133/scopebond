@@ -27,6 +27,24 @@ export function useScopeBond() {
   const [txPhase, setTxPhase] = useState<TxPhase>('idle');
   const [txMessage, setTxMessage] = useState('');
 
+  // 1. Auto-Connect Feature
+  useEffect(() => {
+    const checkConnection = async () => {
+      const eth = (window as any).ethereum;
+      if (eth) {
+        try {
+          const accounts = await eth.request({ method: 'eth_accounts' });
+          if (accounts && accounts.length > 0) {
+            setAccount(accounts[0]);
+          }
+        } catch (err) {
+          console.error("Auto-connect silently failed:", err);
+        }
+      }
+    };
+    checkConnection();
+  }, []);
+
   const refetch = useCallback(async () => {
     setStateLoading(true);
     setStateError(null);
@@ -80,17 +98,28 @@ export function useScopeBond() {
         });
 
         setTxPhase('confirming');
-        setTxMessage(
-          'Transaction submitted; waiting for validator consensus...'
-        );
+        setTxMessage('Transaction submitted; waiting for validator consensus...');
 
-        const receipt = await readClient.waitForTransactionReceipt({
-          hash: txHash,
-          status: TransactionStatus.ACCEPTED,
-        });
-
-        if (!receipt) {
-          throw new Error('Transaction execution was rejected on-chain.');
+        // 2. Persistent Polling Loop (Anti-Timeout Hack)
+        let receipt = null;
+        while (!receipt) {
+          try {
+            receipt = await readClient.waitForTransactionReceipt({
+              hash: txHash,
+              status: TransactionStatus.ACCEPTED,
+            });
+          } catch (waitErr: any) {
+            const errMsg = waitErr?.message ?? String(waitErr);
+            if (errMsg.includes('Timed out waiting for transaction')) {
+              // If it times out, do NOT break. Just update the UI and retry!
+              setTxMessage('Network is heavily loaded. Still actively waiting for confirmation...');
+              // Pause for 2 seconds before asking the network again
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            } else {
+              // If it's a real error (not a timeout), throw it out of the loop
+              throw waitErr;
+            }
+          }
         }
 
         if (receipt.txExecutionResultName && receipt.txExecutionResultName !== 'FINISHED_WITH_RETURN') {
@@ -98,21 +127,21 @@ export function useScopeBond() {
         }
 
         setTxPhase('success');
-        setTxMessage('Transaction accepted successfully.');
-        await refetch();
+        setTxMessage('Transaction confirmed! Auto-refreshing state...');
+        await refetch(); // Auto-refresh happens exactly here!
+        
+        // Clear the success message after 4 seconds
+        setTimeout(() => {
+          setTxPhase('idle');
+        }, 4000);
+
       } catch (err: any) {
         const errorMessage = err?.message ?? String(err);
         
-        // Smart Error Handling: Transparent UX for Timeouts
-        if (errorMessage.includes('Timed out waiting for transaction')) {
-          setTxPhase('error');
-          setTxMessage('Network timeout: The transaction might still be processing on the blockchain. Please manually refresh the page to see the latest status.');
-        } 
-        else if (err?.code === 4001 || /user rejected/i.test(errorMessage)) {
+        if (err?.code === 4001 || /user rejected/i.test(errorMessage)) {
           setTxPhase('error');
           setTxMessage('Transaction rejected by user in MetaMask.');
-        } 
-        else {
+        } else {
           setTxPhase('error');
           setTxMessage(`Transaction error: ${errorMessage}`);
         }
