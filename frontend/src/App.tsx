@@ -93,7 +93,6 @@ export default function App() {
   };
 
   const handleDisconnect = () => {
-    // Clear localStorage session or reload page to reset wallet provider state cleanly
     localStorage.removeItem('scopebond_active_contract');
     window.location.reload();
   };
@@ -357,20 +356,20 @@ export default function App() {
             </button>
           </div>
 
-          {/* Release Funds Action (Always visible, disabled until RULED or RESOLVED) */}
-          <div className={`glass-card p-6 mt-4 bg-gradient-to-r from-emerald-950/50 via-teal-950/30 to-slate-900/80 border border-emerald-500/30 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-6 backdrop-blur-md transition-all duration-300 ${contractStatus === 'RULED' || contractStatus === 'RESOLVED' ? 'opacity-100' : 'opacity-60'}`}>
+          {/* Release Funds Action (Strictly disabled until contractStatus is RULED) */}
+          <div className="glass-card p-6 mt-4 bg-gradient-to-r from-emerald-950/50 via-teal-950/30 to-slate-900/80 border border-emerald-500/30 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-6 backdrop-blur-md">
             <div>
               <h3 className="font-bold text-xs uppercase tracking-wider text-emerald-400">Release Funds</h3>
               <p className="text-xs text-slate-400 mt-1">
-                {contractStatus === 'RULED' || contractStatus === 'RESOLVED'
-                  ? "Execute the final on-chain settlement based on the AI validator's ruling."
-                  : "Locked until AI Court (Rule) is successfully invoked and ruling is finalized."}
+                {contractStatus === 'RULED'
+                  ? "AI Court has ruled. Execute final on-chain settlement."
+                  : `Locked (Current State: ${contractStatus}). Complete AI Court (Rule) first.`}
               </p>
             </div>
             <button 
-              disabled={busy || (contractStatus !== 'RULED' && contractStatus !== 'RESOLVED')}
+              disabled={busy || contractStatus !== 'RULED'}
               onClick={release}
-              className="w-full sm:w-auto glow-button bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold px-6 py-3.5 rounded-xl text-xs whitespace-nowrap shadow-xl cursor-pointer transition border border-emerald-500/30"
+              className="w-full sm:w-auto glow-button bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 disabled:border-slate-700 disabled:shadow-none disabled:cursor-not-allowed text-white font-bold px-6 py-3.5 rounded-xl text-xs whitespace-nowrap shadow-xl cursor-pointer transition border border-emerald-500/30"
             >
               Execute Release
             </button>
