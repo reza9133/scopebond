@@ -17,7 +17,6 @@ export function formatAtto(atto: string | bigint): string {
   return frac ? `${whole}.${frac}` : `${whole}`;
 }
 
-// حالا این هوک، آدرس قرارداد رو به عنوان ورودی می‌گیره
 export function useScopeBond(activeContractAddress: string) {
   const [account, setAccount] = useState<string | null>(null);
   const [state, setState] = useState<ScopeBondState | null>(null);
@@ -26,6 +25,10 @@ export function useScopeBond(activeContractAddress: string) {
 
   const [txPhase, setTxPhase] = useState<TxPhase>('idle');
   const [txMessage, setTxMessage] = useState('');
+
+  const disconnect = useCallback(() => {
+    setAccount(null);
+  }, []);
 
   // Auto-Connect Feature
   useEffect(() => {
@@ -46,7 +49,7 @@ export function useScopeBond(activeContractAddress: string) {
   }, []);
 
   const refetch = useCallback(async () => {
-    // اگر آدرس خالی یا نامعتبر بود، هیچ درخواستی نده
+    // If address is empty or invalid, skip request
     if (!activeContractAddress || activeContractAddress.length !== 42 || !activeContractAddress.startsWith('0x')) {
       setState(null);
       setStateError("Please enter a valid GenLayer contract address (0x...) above to load the dashboard.");
@@ -158,6 +161,7 @@ export function useScopeBond(activeContractAddress: string) {
   return {
     account,
     connectWallet,
+    disconnect,
     state,
     stateLoading,
     stateError,
