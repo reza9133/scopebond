@@ -1,0 +1,10 @@
+Project: GenLayer Escrow Smart Contract
+Role: Web3 Python Developer
+
+Criteria for successful delivery:
+1. The freelancer must deliver a Python smart contract named "ScopeBond".
+2. The contract must have variables for client and freelancer addresses.
+3. The contract must include functions to fund the escrow, submit delivery, and open a dispute.
+4. It must include an AI adjudication function (e.g., using gl.nondet.exec_prompt) that returns FULLY_MET, PARTIALLY_MET, NOT_MET, or INSUFFICIENT_EVIDENCE.
+
+If the submitted Python code meets all these 4 criteria, the delivery is fully accepted.
