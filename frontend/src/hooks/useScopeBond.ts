@@ -103,11 +103,10 @@ export function useScopeBond() {
       } catch (err: any) {
         const errorMessage = err?.message ?? String(err);
         
-        // Smart Error Handling: Intercepting the Timeout Error
+        // Smart Error Handling: Transparent UX for Timeouts
         if (errorMessage.includes('Timed out waiting for transaction')) {
-          setTxPhase('success');
-          setTxMessage('Transaction broadcasted! Network is processing. Syncing state...');
-          await refetch(); // Auto-refetch to get the updated status
+          setTxPhase('error');
+          setTxMessage('Network timeout: The transaction might still be processing on the blockchain. Please manually refresh the page to see the latest status.');
         } 
         else if (err?.code === 4001 || /user rejected/i.test(errorMessage)) {
           setTxPhase('error');
