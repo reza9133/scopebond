@@ -134,6 +134,13 @@ export default function App() {
         <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white mb-6 leading-tight">
           AI-Powered Smart Contracts That <span className="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">Settle Disputes.</span>
         </h1>
+        <button 
+          onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+          className="mt-6 inline-flex items-center space-x-2 text-xs font-bold text-slate-400 hover:text-cyan-400 transition cursor-pointer px-4 py-2 rounded-full border border-slate-800 hover:border-cyan-500/50 bg-slate-900/50"
+        >
+          <span>Learn how it works</span>
+          <span>↓</span>
+        </button>
       </section>
 
       {/* Dynamic Contract Loader Bar */}
@@ -192,7 +199,13 @@ export default function App() {
             <div className="mt-8 pt-6 border-t border-slate-800">
               <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">Active Address</label>
               <div className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-[10px] font-mono text-slate-500 truncate">
-                {activeAddress || "No contract loaded"}
+                {activeAddress ? (
+                  <a href={`https://explorer-bradbury.genlayer.com/contract/${activeAddress}`} target="_blank" rel="noreferrer" className="hover:text-cyan-400 transition">
+                    {activeAddress} ↗
+                  </a>
+                ) : (
+                  "No contract loaded"
+                )}
               </div>
             </div>
           </div>
@@ -347,7 +360,7 @@ export default function App() {
       </main>
 
       {/* How It Works Section & Footer */}
-      <section className="max-w-6xl w-full mx-auto px-6 py-20 mt-12 border-t border-slate-800/80">
+      <section id="how-it-works" className="max-w-6xl w-full mx-auto px-6 py-20 mt-12 border-t border-slate-800/80">
         <div className="text-center mb-12">
           <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest">Protocol Architecture</span>
           <h2 className="text-2xl md:text-3xl font-extrabold text-white mt-2">How ScopeBond Works</h2>
