@@ -72,6 +72,18 @@ class _EoaRecipient:
 def _now() -> int:
     return int(datetime.now(timezone.utc).timestamp())
 
+def _is_immutable(url: str) -> bool:
+    if not url:
+        return False
+    if url.startswith("ipfs://") or url.startswith("ar://"):
+        return True
+    if url.startswith("https://raw.githubusercontent.com/"):
+        parts = url.split("/")
+        # Checking if the URL has a 40-character commit hash (parts[5] in a standard raw github url)
+        if len(parts) >= 6 and len(parts[5]) == 40:
+            return True
+    return False
+
 class ScopeBond(gl.Contract):
     client: Address
     freelancer: Address
@@ -206,6 +218,10 @@ class ScopeBond(gl.Contract):
         if len(delivery_url) > _MAX_URL_LEN:
             raise gl.vm.UserError(f"{ERROR_INPUT} Delivery URL too long")
         
+        # Security validation for immutable evidence
+        if not _is_immutable(delivery_url):
+            raise gl.vm.UserError(f"{ERROR_INPUT} Security Error: Delivery URL must be an immutable IPFS or fixed-commit GitHub link.")
+            
         safe_notes = notes if notes else ""
         if len(safe_notes) > _MAX_NOTE_LEN:
             raise gl.vm.UserError(f"{ERROR_INPUT} Delivery notes too long")
@@ -246,6 +262,10 @@ class ScopeBond(gl.Contract):
         safe_feedback_url = client_feedback_url if client_feedback_url else ""
         if len(safe_feedback_url) > _MAX_URL_LEN:
             raise gl.vm.UserError(f"{ERROR_INPUT} Feedback URL too long")
+            
+        # Security validation for immutable evidence
+        if safe_feedback_url and not _is_immutable(safe_feedback_url):
+            raise gl.vm.UserError(f"{ERROR_INPUT} Security Error: Feedback URL must be immutable.")
             
         self.client_feedback_url = safe_feedback_url
         self.dispute_opened_at = _now()
