@@ -101,11 +101,21 @@ export function useScopeBond() {
         setTxMessage('Transaction accepted successfully.');
         await refetch();
       } catch (err: any) {
-        setTxPhase('error');
-        if (err?.code === 4001 || /user rejected/i.test(err?.message ?? '')) {
+        const errorMessage = err?.message ?? String(err);
+        
+        // Smart Error Handling: Intercepting the Timeout Error
+        if (errorMessage.includes('Timed out waiting for transaction')) {
+          setTxPhase('success');
+          setTxMessage('Transaction broadcasted! Network is processing. Syncing state...');
+          await refetch(); // Auto-refetch to get the updated status
+        } 
+        else if (err?.code === 4001 || /user rejected/i.test(errorMessage)) {
+          setTxPhase('error');
           setTxMessage('Transaction rejected by user in MetaMask.');
-        } else {
-          setTxMessage(`Transaction error: ${err?.message ?? String(err)}`);
+        } 
+        else {
+          setTxPhase('error');
+          setTxMessage(`Transaction error: ${errorMessage}`);
         }
       }
     },
