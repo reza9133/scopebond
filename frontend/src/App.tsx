@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useScopeBond, formatAtto } from './hooks/useScopeBond';
-import { CONTRACT_ADDRESS as DEFAULT_CONTRACT } from './genlayer/config';
 
 const GITHUB_REPO_URL = "https://github.com/reza9133/scopebond";
+const EXAMPLE_CONTRACT = "0x5E3D90484ae2860f13a1F3153BBA49C8320C9f98";
 
 function TxBanner({ phase, message }: { phase: string; message: string }) {
   if (phase === 'idle') return null;
@@ -31,10 +31,10 @@ function isImmutableUrl(url: string): boolean {
 
 export default function App() {
   const [activeAddress, setActiveAddress] = useState(() => {
-    return localStorage.getItem('scopebond_active_contract') || DEFAULT_CONTRACT || '';
+    return localStorage.getItem('scopebond_active_contract') || '';
   });
   const [inputAddress, setInputAddress] = useState(() => {
-    return localStorage.getItem('scopebond_active_contract') || DEFAULT_CONTRACT || '';
+    return localStorage.getItem('scopebond_active_contract') || '';
   });
 
   const {
@@ -61,7 +61,7 @@ export default function App() {
   const [feedbackUrl, setFeedbackUrl] = useState('');
 
   const busy = txPhase === 'awaiting_wallet' || txPhase === 'submitting' || txPhase === 'confirming';
-  const contractStatus = stateLoading ? 'LOADING...' : stateError ? 'OFFLINE / ERROR' : (state?.status ?? 'AWAITING_FUNDING');
+  const contractStatus = stateLoading ? 'LOADING...' : stateError ? 'WAITING FOR CONTRACT' : (state?.status ?? 'AWAITING_FUNDING');
   const escrowAmount = state ? formatAtto(state.escrow_atto) : '0';
   const outcome = state?.outcome || 'Pending';
   const rulingReason = state?.ruling_reason || '';
@@ -164,18 +164,28 @@ export default function App() {
 
       {/* Dynamic Contract Loader Bar */}
       <div className="max-w-6xl mx-auto px-6 mb-8 w-full">
-        <form onSubmit={handleLoadContract} className="glass-card p-2 pl-6 bg-slate-900/80 border border-slate-700/50 rounded-2xl shadow-xl flex flex-col sm:flex-row gap-4 items-center backdrop-blur-md">
-          <label className="text-xs font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">Target Contract:</label>
-          <input 
-            type="text" 
-            placeholder="Enter ScopeBond Contract Address (0x...)" 
-            value={inputAddress}
-            onChange={(e) => setInputAddress(e.target.value)}
-            className="w-full bg-transparent border-none text-sm font-mono text-cyan-400 focus:outline-none placeholder-slate-600"
-          />
+        <form onSubmit={handleLoadContract} className="glass-card p-3 px-6 bg-slate-900/80 border border-slate-700/50 rounded-2xl shadow-xl flex flex-col sm:flex-row gap-4 items-start sm:items-center backdrop-blur-md">
+          <label className="text-xs font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap mt-3 sm:mt-0">Target Contract:</label>
+          <div className="w-full flex flex-col">
+            <input 
+              type="text" 
+              placeholder="Enter ScopeBond Contract Address (0x...)" 
+              value={inputAddress}
+              onChange={(e) => setInputAddress(e.target.value)}
+              className="w-full bg-transparent border-none text-sm font-mono text-cyan-400 focus:outline-none placeholder-slate-600"
+            />
+            <div className="text-[10px] text-slate-500 mt-2 font-mono">
+              Try example: <span 
+                onClick={() => setInputAddress(EXAMPLE_CONTRACT)}
+                className="text-slate-400 hover:text-cyan-400 transition cursor-pointer border-b border-dashed border-slate-600 hover:border-cyan-400"
+              >
+                {EXAMPLE_CONTRACT}
+              </span>
+            </div>
+          </div>
           <button 
             type="submit"
-            className="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl text-xs whitespace-nowrap transition cursor-pointer border border-slate-600"
+            className="w-full sm:w-auto h-12 bg-slate-800 hover:bg-slate-700 text-white font-bold px-6 rounded-xl text-xs whitespace-nowrap transition cursor-pointer border border-slate-600 self-center"
           >
             Load Dashboard
           </button>
@@ -358,7 +368,7 @@ export default function App() {
             </button>
           </div>
 
-          {/* Release Funds Action (Strictly disabled until contractStatus is RULED) */}
+          {/* Release Funds Action */}
           <div className="glass-card p-6 mt-4 bg-gradient-to-r from-emerald-950/50 via-teal-950/30 to-slate-900/80 border border-emerald-500/30 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-6 backdrop-blur-md">
             <div>
               <h3 className="font-bold text-xs uppercase tracking-wider text-emerald-400">Release Funds</h3>
