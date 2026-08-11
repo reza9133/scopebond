@@ -31,9 +31,13 @@ function isImmutableUrl(url: string): boolean {
 }
 
 export default function App() {
-  // State for Dynamic Contract Loading
-  const [activeAddress, setActiveAddress] = useState(DEFAULT_CONTRACT || '');
-  const [inputAddress, setInputAddress] = useState(DEFAULT_CONTRACT || '');
+  // State with LocalStorage persistence so contract address survives page refreshes
+  const [activeAddress, setActiveAddress] = useState(() => {
+    return localStorage.getItem('scopebond_active_contract') || DEFAULT_CONTRACT || '';
+  });
+  const [inputAddress, setInputAddress] = useState(() => {
+    return localStorage.getItem('scopebond_active_contract') || DEFAULT_CONTRACT || '';
+  });
 
   // Hook dynamically loads the contract based on activeAddress state
   const {
@@ -67,7 +71,9 @@ export default function App() {
   const handleLoadContract = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputAddress.trim().length === 42 && inputAddress.trim().startsWith('0x')) {
-      setActiveAddress(inputAddress.trim());
+      const newAddr = inputAddress.trim();
+      setActiveAddress(newAddr);
+      localStorage.setItem('scopebond_active_contract', newAddr);
     } else {
       alert("Please enter a valid 42-character GenLayer contract address starting with '0x'.");
     }
