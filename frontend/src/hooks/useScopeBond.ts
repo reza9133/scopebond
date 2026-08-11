@@ -28,11 +28,16 @@ export function useScopeBond(activeContractAddress: string) {
 
   const disconnect = useCallback(() => {
     setAccount(null);
+    localStorage.setItem('scopebond_wallet_disconnected', 'true');
   }, []);
 
   // Auto-Connect Feature
   useEffect(() => {
     const checkConnection = async () => {
+      if (localStorage.getItem('scopebond_wallet_disconnected') === 'true') {
+        return;
+      }
+      
       const eth = (window as any).ethereum;
       if (eth) {
         try {
@@ -49,7 +54,6 @@ export function useScopeBond(activeContractAddress: string) {
   }, []);
 
   const refetch = useCallback(async () => {
-    // If address is empty or invalid, skip request
     if (!activeContractAddress || activeContractAddress.length !== 42 || !activeContractAddress.startsWith('0x')) {
       setState(null);
       setStateError("Please enter a valid GenLayer contract address (0x...) above to load the dashboard.");
@@ -84,6 +88,7 @@ export function useScopeBond(activeContractAddress: string) {
     if (!eth) throw new Error('MetaMask not found.');
     const [address] = await eth.request({ method: 'eth_requestAccounts' });
     setAccount(address);
+    localStorage.removeItem('scopebond_wallet_disconnected');
     return address as string;
   }, []);
 
