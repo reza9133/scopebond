@@ -6,7 +6,7 @@ Testnet-grade intelligent contract. No real funds, no custody outside the chain,
 
 **Live Demo:** (https://scopebond.pages.dev)
 
-**Live Testnet Contract Address:** `0x7e1Aef6FDc81B14F868016261c25A6eF4D89179A` (GenLayer Bradbury Testnet - SECURE VERSION)
+**Live Testnet Contract Address:** `0x5E3D90484ae2860f13a1F3153BBA49C8320C9f98` (GenLayer Bradbury Testnet - SECURE VERSION)
 > **Note for Evaluators:** The contract address provided above is a pre-deployed reference instance used for our demonstration. Thanks to our dynamic dApp frontend, you can deploy your own instance of `contracts/scope_bond.py` on the GenLayer Bradbury Testnet and instantly load/interact with it using the target contract input bar on the live demo site!
 ---
 
