@@ -35,6 +35,7 @@ export default function App() {
   const [activeAddress, setActiveAddress] = useState(DEFAULT_CONTRACT || '');
   const [inputAddress, setInputAddress] = useState(DEFAULT_CONTRACT || '');
 
+  // Hook dynamically loads the contract based on activeAddress state
   const {
     account,
     connectWallet,
@@ -345,7 +346,7 @@ export default function App() {
         </div>
       </main>
 
-      {/* How It Works Section & Footer (unchanged from your original) */}
+      {/* How It Works Section & Footer */}
       <section className="max-w-6xl w-full mx-auto px-6 py-20 mt-12 border-t border-slate-800/80">
         <div className="text-center mb-12">
           <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest">Protocol Architecture</span>
