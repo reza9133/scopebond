@@ -36,7 +36,8 @@ export default function App() {
     submitDelivery,
     approveDelivery,
     openDispute,
-    rule
+    rule,
+    release // <--- تابع آزادسازی اضافه شد
   } = useScopeBond();
 
   const [fundAmount, setFundAmount] = useState('1');
@@ -271,6 +272,23 @@ export default function App() {
             </button>
           </div>
 
+          {/* Release Funds Action - اضافه شده برای مرحله نهایی */}
+          {(contractStatus === 'RULED' || contractStatus === 'RESOLVED') && (
+            <div className="glass-card p-6 mt-4 bg-gradient-to-r from-emerald-950/50 via-teal-950/30 to-slate-900/80 border border-emerald-500/30 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-6 backdrop-blur-md">
+              <div>
+                <h3 className="font-bold text-xs uppercase tracking-wider text-emerald-400">Release Funds</h3>
+                <p className="text-xs text-slate-400 mt-1">Execute the final on-chain settlement based on the AI validator's ruling.</p>
+              </div>
+              <button 
+                disabled={busy}
+                onClick={release}
+                className="w-full sm:w-auto glow-button bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold px-6 py-3.5 rounded-xl text-xs whitespace-nowrap shadow-xl cursor-pointer transition border border-emerald-500/30"
+              >
+                Execute Release
+              </button>
+            </div>
+          )}
+
         </div>
       </main>
 
@@ -295,7 +313,7 @@ export default function App() {
             <div className="text-purple-400 font-mono text-3xl font-black mb-4 opacity-40">02</div>
             <h3 className="text-base font-bold text-white mb-2">Submit & Verify</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              The freelancer submits GitHub-backed deliverables and proof of work. Both parties review deliverables transparently on-chain.
+              The freelancer submits immutable, hash-backed deliverables. Both parties review deliverables transparently on-chain.
             </p>
           </div>
 
