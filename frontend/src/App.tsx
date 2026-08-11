@@ -40,6 +40,7 @@ export default function App() {
   const {
     account,
     connectWallet,
+    disconnect,
     state,
     stateLoading,
     stateError,
@@ -93,6 +94,7 @@ export default function App() {
   };
 
   const handleDisconnect = () => {
+    disconnect();
     localStorage.removeItem('scopebond_active_contract');
     window.location.reload();
   };
