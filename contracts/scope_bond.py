@@ -1,17 +1,13 @@
 # { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
 
-# ScopeBond — single-milestone freelance delivery escrow, adjudicated by
-# GenLayer validator consensus over the pinned acceptance brief and the
-# freelancer's locked delivery evidence.
-
 import json
 from datetime import datetime, timezone
 
 from genlayer import *
 
 # --- Error taxonomy -----------------------------------------------------------
-ERROR_INPUT = "[INPUT]"              # invalid input / state / unauthorized
-ERROR_TRANSIENT = "[TRANSIENT]"      # 408/425/429, timeout, 5xx
+ERROR_INPUT = "[INPUT]"             # invalid input / state / unauthorized
+ERROR_TRANSIENT = "[TRANSIENT]"     # 408/425/429, timeout, 5xx
 ERROR_INVALID = "[INVALID_EVIDENCE]" # unexpected 4xx
 ERROR_LLM = "[LLM_ERROR]"            # malformed model output
 
@@ -79,7 +75,6 @@ def _is_immutable(url: str) -> bool:
         return True
     if url.startswith("https://raw.githubusercontent.com/"):
         parts = url.split("/")
-        # Checking if the URL has a 40-character commit hash (parts[5] in a standard raw github url)
         if len(parts) >= 6 and len(parts[5]) == 40:
             return True
     return False
@@ -126,7 +121,6 @@ class ScopeBond(gl.Contract):
         insufficient_evidence_deadlock_seconds: int,
         deadlock_refund_bps: int,
     ):
-        # Safely cast the string from the UI to an actual GenLayer Address object
         parsed_freelancer = Address(freelancer) if isinstance(freelancer, str) else freelancer
         
         if parsed_freelancer == _ZERO_ADDRESS:
@@ -218,7 +212,6 @@ class ScopeBond(gl.Contract):
         if len(delivery_url) > _MAX_URL_LEN:
             raise gl.vm.UserError(f"{ERROR_INPUT} Delivery URL too long")
         
-        # Security validation for immutable evidence
         if not _is_immutable(delivery_url):
             raise gl.vm.UserError(f"{ERROR_INPUT} Security Error: Delivery URL must be an immutable IPFS or fixed-commit GitHub link.")
             
@@ -263,7 +256,6 @@ class ScopeBond(gl.Contract):
         if len(safe_feedback_url) > _MAX_URL_LEN:
             raise gl.vm.UserError(f"{ERROR_INPUT} Feedback URL too long")
             
-        # Security validation for immutable evidence
         if safe_feedback_url and not _is_immutable(safe_feedback_url):
             raise gl.vm.UserError(f"{ERROR_INPUT} Security Error: Feedback URL must be immutable.")
             
@@ -448,9 +440,9 @@ Rules:
 - Choose exactly one outcome:
     FULLY_MET             — every material criterion in the brief is met.
     PARTIALLY_MET         — some criteria are met, some are not, but the
-                             delivery has clear standalone value.
+                            delivery has clear standalone value.
     NOT_MET               — the delivery does not satisfy the brief in any
-                             material way.
+                            material way.
     INSUFFICIENT_EVIDENCE — evidence inadequate to decide.
 
 Respond with ONLY this JSON object, no prose or code fences:
@@ -479,7 +471,8 @@ def _fetch(url: str) -> tuple:
     if 400 <= st < 500:
         raise gl.vm.UserError(f"{ERROR_INVALID} unexpected evidence response {st}")
     body = res.body or b""
-    return ("AVAILABLE", body.decode("utf-8", errors="replace")[:8000])
+    # لیمیت کاراکتر برداشته شد تا کل سورس‌کد به صورت کامل فچ شود
+    return ("AVAILABLE", body.decode("utf-8", errors="replace"))
 
 def _normalize(raw: object) -> dict:
     data = raw
