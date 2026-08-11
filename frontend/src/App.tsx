@@ -22,6 +22,16 @@ function TxBanner({ phase, message }: { phase: string; message: string }) {
   );
 }
 
+// Validator for Immutable URLs
+function isImmutableUrl(url: string): boolean {
+  if (!url) return false;
+  // Accept IPFS or Arweave hash links
+  if (url.startsWith('ipfs://') || url.startsWith('ar://')) return true;
+  // Accept GitHub raw links ONLY if they contain a strict 40-character commit hash (not mutable branch names like 'main')
+  const githubCommitRegex = /^https:\/\/raw\.githubusercontent\.com\/[^\/]+\/[^\/]+\/[a-f0-9]{40}\//i;
+  return githubCommitRegex.test(url);
+}
+
 export default function App() {
   const {
     account,
@@ -37,7 +47,7 @@ export default function App() {
     approveDelivery,
     openDispute,
     rule,
-    release // <--- تابع آزادسازی اضافه شد
+    release
   } = useScopeBond();
 
   const [fundAmount, setFundAmount] = useState('1');
@@ -50,6 +60,22 @@ export default function App() {
   const escrowAmount = state ? formatAtto(state.escrow_atto) : '0';
   const outcome = state?.outcome || 'Pending';
   const rulingReason = state?.ruling_reason || '';
+
+  const handleSecureSubmitDelivery = () => {
+    if (!isImmutableUrl(deliveryUrl)) {
+      alert("Security Requirement: Delivery URL must be immutable to prevent tampering.\n\nPlease use an 'ipfs://' link, or a GitHub raw URL containing a strict 40-character commit hash.");
+      return;
+    }
+    submitDelivery(deliveryUrl, deliveryNotes);
+  };
+
+  const handleSecureOpenDispute = () => {
+    if (feedbackUrl && !isImmutableUrl(feedbackUrl)) {
+      alert("Security Requirement: Feedback Evidence URL must be immutable to prevent tampering.\n\nPlease use an 'ipfs://' link, or a GitHub raw URL containing a strict 40-character commit hash.");
+      return;
+    }
+    openDispute(feedbackUrl);
+  };
 
   return (
     <div className="min-h-screen text-slate-100 flex flex-col bg-slate-950 font-sans">
@@ -194,7 +220,7 @@ export default function App() {
               </button>
               <button 
                 disabled={busy}
-                onClick={() => openDispute(feedbackUrl)}
+                onClick={handleSecureOpenDispute}
                 className="bg-red-950/20 hover:bg-red-900/30 text-red-400 py-3 px-5 rounded-xl text-xs font-bold transition border border-red-900/40 cursor-pointer"
               >
                 Open Dispute
@@ -205,11 +231,12 @@ export default function App() {
               <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">Feedback / Evidence URL</label>
               <input 
                 type="text" 
-                placeholder="https://raw.githubusercontent.com/.../feedback.json" 
+                placeholder="ipfs://Qm... or https://raw.githubusercontent.com/.../HASH/..." 
                 value={feedbackUrl}
                 onChange={(e) => setFeedbackUrl(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
               />
+              <p className="text-[10px] text-slate-500 mt-1">Must be an immutable IPFS or fixed-commit GitHub link.</p>
             </div>
           </div>
 
@@ -229,7 +256,7 @@ export default function App() {
                 </button>
                 <button 
                   disabled={busy}
-                  onClick={() => submitDelivery(deliveryUrl, deliveryNotes)}
+                  onClick={handleSecureSubmitDelivery}
                   className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white py-3 px-5 rounded-xl text-xs font-bold transition shadow-lg shadow-emerald-600/20 cursor-pointer"
                 >
                   Submit Delivery
@@ -239,11 +266,12 @@ export default function App() {
                 <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">Delivery Manifest URL</label>
                 <input 
                   type="text" 
-                  placeholder="https://raw.githubusercontent.com/.../manifest.json" 
+                  placeholder="ipfs://Qm... or https://raw.githubusercontent.com/.../HASH/..." 
                   value={deliveryUrl}
                   onChange={(e) => setDeliveryUrl(e.target.value)}
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
                 />
+                <p className="text-[10px] text-slate-500 mt-1">Must be an immutable IPFS or fixed-commit GitHub link.</p>
               </div>
               <div>
                 <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">Delivery Notes</label>
@@ -272,7 +300,7 @@ export default function App() {
             </button>
           </div>
 
-          {/* Release Funds Action - اضافه شده برای مرحله نهایی */}
+          {/* Release Funds Action */}
           {(contractStatus === 'RULED' || contractStatus === 'RESOLVED') && (
             <div className="glass-card p-6 mt-4 bg-gradient-to-r from-emerald-950/50 via-teal-950/30 to-slate-900/80 border border-emerald-500/30 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-6 backdrop-blur-md">
               <div>
