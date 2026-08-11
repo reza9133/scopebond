@@ -1,4 +1,4 @@
-export const CONTRACT_ADDRESS = '0xD0aFE1A900fe4FA7f7B8dF1Bab54E0004AD828D5' as `0x${string}`;
+export const CONTRACT_ADDRESS = '0x7E38e31453cb626Dcd7672ae8444570c82fCCB98' as `0x${string}`;
 
 export const BRADBURY_NETWORK_PARAMS = {
   chainIdHex: '0x107D',
