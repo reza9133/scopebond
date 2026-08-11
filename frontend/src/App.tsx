@@ -22,7 +22,6 @@ function TxBanner({ phase, message }: { phase: string; message: string }) {
   );
 }
 
-// Validator for Immutable URLs
 function isImmutableUrl(url: string): boolean {
   if (!url) return false;
   if (url.startsWith('ipfs://') || url.startsWith('ar://')) return true;
@@ -31,7 +30,6 @@ function isImmutableUrl(url: string): boolean {
 }
 
 export default function App() {
-  // State with LocalStorage persistence so contract address survives page refreshes
   const [activeAddress, setActiveAddress] = useState(() => {
     return localStorage.getItem('scopebond_active_contract') || DEFAULT_CONTRACT || '';
   });
@@ -39,7 +37,6 @@ export default function App() {
     return localStorage.getItem('scopebond_active_contract') || DEFAULT_CONTRACT || '';
   });
 
-  // Hook dynamically loads the contract based on activeAddress state
   const {
     account,
     connectWallet,
@@ -95,6 +92,12 @@ export default function App() {
     openDispute(feedbackUrl);
   };
 
+  const handleDisconnect = () => {
+    // Clear localStorage session or reload page to reset wallet provider state cleanly
+    localStorage.removeItem('scopebond_active_contract');
+    window.location.reload();
+  };
+
   return (
     <div className="min-h-screen text-slate-100 flex flex-col bg-slate-950 font-sans">
       {/* Header */}
@@ -118,9 +121,18 @@ export default function App() {
             GitHub Repo ↗
           </a>
           {account ? (
-            <span className="bg-slate-900 text-cyan-400 text-xs px-4 py-2 rounded-xl border border-slate-700 font-mono shadow-inner">
-              {account.substring(0, 6)}...{account.substring(38)}
-            </span>
+            <div className="flex items-center space-x-2">
+              <span className="bg-slate-900 text-cyan-400 text-xs px-4 py-2 rounded-xl border border-slate-700 font-mono shadow-inner">
+                {account.substring(0, 6)}...{account.substring(38)}
+              </span>
+              <button 
+                onClick={handleDisconnect}
+                className="bg-slate-900 hover:bg-red-950/40 text-slate-400 hover:text-red-400 text-xs px-3 py-2 rounded-xl border border-slate-700 hover:border-red-500/30 transition cursor-pointer"
+                title="Disconnect Wallet"
+              >
+                Disconnect
+              </button>
+            </div>
           ) : (
             <button 
               onClick={connectWallet}
@@ -226,7 +238,7 @@ export default function App() {
         </div>
 
         {/* Right Column: Actions Dashboard */}
-        <div className="md:col-span-2 space-y-6 opacity-100 transition-opacity duration-300" style={{ opacity: activeAddress && !stateError ? 1 : 0.4, pointerEvents: activeAddress && !stateError ? 'auto' : 'none' }}>
+        <div className="md:col-span-2 space-y-6" style={{ opacity: activeAddress && !stateError ? 1 : 0.4, pointerEvents: activeAddress && !stateError ? 'auto' : 'none' }}>
           
           {/* Client Dashboard */}
           <div className="glass-card p-6 bg-slate-900/60 border border-slate-800 rounded-2xl shadow-xl backdrop-blur-md">
@@ -345,22 +357,24 @@ export default function App() {
             </button>
           </div>
 
-          {/* Release Funds Action */}
-          {(contractStatus === 'RULED' || contractStatus === 'RESOLVED') && (
-            <div className="glass-card p-6 mt-4 bg-gradient-to-r from-emerald-950/50 via-teal-950/30 to-slate-900/80 border border-emerald-500/30 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-6 backdrop-blur-md">
-              <div>
-                <h3 className="font-bold text-xs uppercase tracking-wider text-emerald-400">Release Funds</h3>
-                <p className="text-xs text-slate-400 mt-1">Execute the final on-chain settlement based on the AI validator's ruling.</p>
-              </div>
-              <button 
-                disabled={busy}
-                onClick={release}
-                className="w-full sm:w-auto glow-button bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold px-6 py-3.5 rounded-xl text-xs whitespace-nowrap shadow-xl cursor-pointer transition border border-emerald-500/30"
-              >
-                Execute Release
-              </button>
+          {/* Release Funds Action (Always visible, disabled until RULED or RESOLVED) */}
+          <div className={`glass-card p-6 mt-4 bg-gradient-to-r from-emerald-950/50 via-teal-950/30 to-slate-900/80 border border-emerald-500/30 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-6 backdrop-blur-md transition-all duration-300 ${contractStatus === 'RULED' || contractStatus === 'RESOLVED' ? 'opacity-100' : 'opacity-60'}`}>
+            <div>
+              <h3 className="font-bold text-xs uppercase tracking-wider text-emerald-400">Release Funds</h3>
+              <p className="text-xs text-slate-400 mt-1">
+                {contractStatus === 'RULED' || contractStatus === 'RESOLVED'
+                  ? "Execute the final on-chain settlement based on the AI validator's ruling."
+                  : "Locked until AI Court (Rule) is successfully invoked and ruling is finalized."}
+              </p>
             </div>
-          )}
+            <button 
+              disabled={busy || (contractStatus !== 'RULED' && contractStatus !== 'RESOLVED')}
+              onClick={release}
+              className="w-full sm:w-auto glow-button bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold px-6 py-3.5 rounded-xl text-xs whitespace-nowrap shadow-xl cursor-pointer transition border border-emerald-500/30"
+            >
+              Execute Release
+            </button>
+          </div>
 
         </div>
       </main>
