@@ -2,7 +2,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { TransactionStatus } from 'genlayer-js/types';
 import { readClient, createWriteClient, ensureBradburyNetwork } from '../genlayer/client';
-import { CONTRACT_ADDRESS } from '../genlayer/config';
 import type { ScopeBondState, TxPhase } from '../genlayer/types';
 
 function parseGenToAtto(amount: string): bigint {
@@ -18,16 +17,17 @@ export function formatAtto(atto: string | bigint): string {
   return frac ? `${whole}.${frac}` : `${whole}`;
 }
 
-export function useScopeBond() {
+// حالا این هوک، آدرس قرارداد رو به عنوان ورودی می‌گیره
+export function useScopeBond(activeContractAddress: string) {
   const [account, setAccount] = useState<string | null>(null);
   const [state, setState] = useState<ScopeBondState | null>(null);
-  const [stateLoading, setStateLoading] = useState(true);
+  const [stateLoading, setStateLoading] = useState(false);
   const [stateError, setStateError] = useState<string | null>(null);
 
   const [txPhase, setTxPhase] = useState<TxPhase>('idle');
   const [txMessage, setTxMessage] = useState('');
 
-  // 1. Auto-Connect Feature
+  // Auto-Connect Feature
   useEffect(() => {
     const checkConnection = async () => {
       const eth = (window as any).ethereum;
@@ -46,23 +46,31 @@ export function useScopeBond() {
   }, []);
 
   const refetch = useCallback(async () => {
+    // اگر آدرس خالی یا نامعتبر بود، هیچ درخواستی نده
+    if (!activeContractAddress || activeContractAddress.length !== 42 || !activeContractAddress.startsWith('0x')) {
+      setState(null);
+      setStateError("Please enter a valid GenLayer contract address (0x...) above to load the dashboard.");
+      return;
+    }
+
     setStateLoading(true);
     setStateError(null);
     try {
       const result = await readClient.readContract({
-        address: CONTRACT_ADDRESS,
+        address: activeContractAddress,
         functionName: 'get_state',
         args: [],
       });
       setState(result as ScopeBondState);
     } catch (err: any) {
       setStateError(
-        `Failed to fetch contract state from network: ${err?.message ?? err}.`
+        `Failed to fetch contract state. Are you sure this is a valid ScopeBond contract? Error: ${err?.message ?? err}`
       );
+      setState(null);
     } finally {
       setStateLoading(false);
     }
-  }, []);
+  }, [activeContractAddress]);
 
   useEffect(() => {
     refetch();
@@ -78,6 +86,12 @@ export function useScopeBond() {
 
   const runWrite = useCallback(
     async (functionName: string, args: unknown[], value: bigint = 0n) => {
+      if (!activeContractAddress) {
+         setTxPhase('error');
+         setTxMessage('No contract address specified.');
+         return;
+      }
+
       setTxPhase('awaiting_wallet');
       setTxMessage('Connecting to wallet...');
       try {
@@ -91,7 +105,7 @@ export function useScopeBond() {
         setTxPhase('submitting');
         setTxMessage('Waiting for transaction approval in MetaMask...');
         const txHash = await writeClient.writeContract({
-          address: CONTRACT_ADDRESS,
+          address: activeContractAddress,
           functionName,
           args,
           value,
@@ -100,7 +114,7 @@ export function useScopeBond() {
         setTxPhase('confirming');
         setTxMessage('Transaction submitted; waiting for validator consensus...');
 
-        // 2. Persistent Polling Loop (Anti-Timeout Hack)
+        // Persistent Polling Loop
         let receipt = null;
         while (!receipt) {
           try {
@@ -111,33 +125,24 @@ export function useScopeBond() {
           } catch (waitErr: any) {
             const errMsg = waitErr?.message ?? String(waitErr);
             if (errMsg.includes('Timed out waiting for transaction')) {
-              // If it times out, do NOT break. Just update the UI and retry!
               setTxMessage('Network is heavily loaded. Still actively waiting for confirmation...');
-              // Pause for 2 seconds before asking the network again
               await new Promise(resolve => setTimeout(resolve, 2000));
             } else {
-              // If it's a real error (not a timeout), throw it out of the loop
               throw waitErr;
             }
           }
         }
 
-        if (receipt.txExecutionResultName && receipt.txExecutionResultName !== 'FINISHED_WITH_RETURN') {
-          console.warn('Execution result name:', receipt.txExecutionResultName);
-        }
-
         setTxPhase('success');
         setTxMessage('Transaction confirmed! Auto-refreshing state...');
-        await refetch(); // Auto-refresh happens exactly here!
+        await refetch(); 
         
-        // Clear the success message after 4 seconds
         setTimeout(() => {
           setTxPhase('idle');
         }, 4000);
 
       } catch (err: any) {
         const errorMessage = err?.message ?? String(err);
-        
         if (err?.code === 4001 || /user rejected/i.test(errorMessage)) {
           setTxPhase('error');
           setTxMessage('Transaction rejected by user in MetaMask.');
@@ -147,7 +152,7 @@ export function useScopeBond() {
         }
       }
     },
-    [account, connectWallet, refetch]
+    [account, connectWallet, refetch, activeContractAddress]
   );
 
   return {
