@@ -205,22 +205,10 @@ with a skip if `genlayer-test` isn't installed; the pure-function tests
 
 ## Known limitations
 
-- **This is a design + reference implementation, not a deployed, audited
-  product.** No live contract address, no explorer links, no measured
-  Bradbury run — unlike a project that has already gone through a pilot,
-  this repository is the starting point for one.
-- **Adjudication quality depends on brief quality.** A vague brief
-  ("make it fast") gives validators little to anchor a criteria-by-criteria
-  ruling on and will push more cases toward `INSUFFICIENT_EVIDENCE` or
-  disagreement between honest validators.
-- **The reference-tests source is optional and unverified by the contract.**
-  It is corroborating evidence only; the contract does not run the tests
-  itself, and a reference suite that doesn't match the brief is a
-  project-setup error, not something the contract can catch.
-- **Finalization is slow**, as with any GenLayer settlement — expect
-  transaction finality in the tens of minutes, not seconds, and design any
-  UI around that rather than hiding it.
-- **No commercial warranty.** Testnet-grade project.
+- **Adjudication quality depends on brief quality.** A vague brief ("make it fast") gives validators little to anchor a criteria-by-criteria ruling on and will push more cases toward `INSUFFICIENT_EVIDENCE` or disagreement between honest validators.
+- **The reference-tests source is optional and unverified by the contract.** It is corroborating evidence only; the contract does not run the tests itself, and a reference suite that doesn't match the brief is a project-setup error, not something the contract can catch.
+- **Finalization is slow**, as with any GenLayer settlement — expect transaction finality in the tens of minutes, not seconds, and design any UI around that rather than hiding it.
+- **Testnet-grade release.** While a reference testnet instance is provided for live demonstration, this repository is a reference implementation without a formal commercial audit or warranty.
 
 ## Licence
 
